@@ -19,12 +19,21 @@
 
 桌面学习时可以用空格显示释义，用 1 到 4 选择熟悉程度。
 
-## 本地运行
+## 打开桌面版
+
+需要先装好 Node.js。在项目目录里执行：
 
 ```bash
 npm install
+npm run desktop
+```
+
+会弹出一个「扇贝日语」窗口。关掉窗口，应用就退出。进度留在这台电脑的这个应用里。
+
+只在浏览器里看的话，用 `npm run dev`，然后打开 http://localhost:5173 。
+
+```bash
 npm test
-npm run dev
 ```
 
 构建：
