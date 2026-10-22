@@ -35,6 +35,7 @@ export type Card = {
   reviews: number;
   correct: number;
   updatedAt: number;
+  reviewedAt: number;
 };
 
 export type BookDay = {

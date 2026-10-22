@@ -98,7 +98,7 @@ export function App() {
           <ul>
             <li>从 N5 开始，也可以自己建词书</li>
             <li>先回忆读音和意思</li>
-            <li>不认识的词很快再见面</li>
+            <li>记忆曲线安排下一次见面</li>
             <li>完成计划就打卡</li>
           </ul>
         </aside>

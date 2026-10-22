@@ -16,6 +16,7 @@ export function emptyCard(): Card {
     reviews: 0,
     correct: 0,
     updatedAt: 0,
+    reviewedAt: 0,
   };
 }
 
@@ -36,6 +37,7 @@ export function applyRating(card: Card, rating: Rating, now: number): Card {
     stage: stageNow,
     reviews: card.reviews + 1,
     updatedAt: now,
+    reviewedAt: now,
     correct: rating === 'again' ? card.correct : card.correct + 1,
     lapses: rating === 'again' ? card.lapses + 1 : card.lapses,
   };
@@ -124,6 +126,11 @@ export function isBookGoalMet(
   const newOk = log.newCount >= dailyNew || remainingNew === 0;
   const reviewOk = log.reviewCount >= log.reviewTarget;
   return newOk && reviewOk;
+}
+
+export function startOfDay(ms: number): number {
+  const date = new Date(ms);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 }
 
 export function formatReviewDay(due: number, now = Date.now()): string {

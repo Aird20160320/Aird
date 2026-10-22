@@ -1,6 +1,7 @@
 import { isBookId, wordById } from '../data/words';
 import { DAILY_CHOICES, type Activity, type Book, type BookDay, type Card, type State, type Word } from '../types';
 import { COVER_PALETTE, buildCustomWord } from './draft';
+import { reviewedAtOf } from './memory';
 import { freshState } from './reducer';
 import { clampStage, dayKey } from './srs';
 
@@ -96,15 +97,31 @@ export function sanitize(input: unknown, now = Date.now()): State {
       if ((!wordById[id] && !customWordIds.has(id)) || !card || typeof card !== 'object') continue;
       const current = card as Partial<Card>;
       const introduced = !!current.introduced;
+      const stage = introduced ? clampStage(num(current.stage)) : 0;
+      const due = num(current.due);
+      const updatedAt = num(current.updatedAt);
       cards[id] = {
         introduced,
-        stage: introduced ? clampStage(num(current.stage)) : 0,
-        due: num(current.due),
+        stage,
+        due,
         notebook: !!current.notebook,
         lapses: num(current.lapses),
         reviews: num(current.reviews),
         correct: num(current.correct),
-        updatedAt: num(current.updatedAt),
+        updatedAt,
+        reviewedAt: introduced
+          ? reviewedAtOf({
+              introduced,
+              stage,
+              due,
+              notebook: false,
+              lapses: 0,
+              reviews: 0,
+              correct: 0,
+              updatedAt,
+              reviewedAt: num(current.reviewedAt),
+            })
+          : 0,
       };
     }
   }

@@ -3,6 +3,7 @@ import { allWords } from '../lib/catalog';
 import { dayKey, isMastered, prevDay } from '../lib/srs';
 import { dashboard } from '../lib/selectors';
 import { useStore } from '../store';
+import { MemoryOverview } from '../components/MemoryCurve';
 import { TopBar } from '../components/ui';
 
 export function StatsView() {
@@ -37,6 +38,7 @@ export function StatsView() {
           <span>记得率</span>
         </article>
       </section>
+      <MemoryOverview />
       <section className="panel">
         <h2>近 7 天</h2>
         <div className="bars">

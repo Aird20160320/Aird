@@ -6,6 +6,7 @@ import { matchesReading } from './kana';
 import { freshState, reducer } from './reducer';
 import { buildSession, nextQueue } from './session';
 import { sanitize } from './storage';
+import { dueBuckets, placeOnLadder, retentionAt, wordRetention } from './memory';
 import { applyRating, computeStreak, DAY_MS, dayKey, emptyCard, isBookGoalMet, prevDay, previewDelay, reviewMeter } from './srs';
 
 const now = new Date(2026, 9, 21, 8, 30, 0).getTime();
@@ -166,6 +167,51 @@ describe('进度', () => {
     expect(kept.today.books.cet4).toBeUndefined();
     expect(kept.customBooks).toEqual([]);
     expect(kept.customWords).toEqual([]);
+  });
+});
+
+describe('记忆曲线', () => {
+  it('到了复习日，记忆大约降到 80%', () => {
+    expect(retentionAt(0, 2)).toBe(1);
+    expect(retentionAt(2, 2)).toBeCloseTo(0.8, 5);
+    expect(retentionAt(4, 2)).toBeLessThan(0.8);
+  });
+
+  it('认识之后落在对应间隔上，过期后掉到复习线以下', () => {
+    const card = applyRating(emptyCard(), 'good', now);
+    expect(card.reviewedAt).toBe(now);
+    const fresh = placeOnLadder(card, now);
+    expect(fresh?.y).toBeCloseTo(1, 2);
+    expect(fresh?.x).toBeCloseTo(1 / 8, 2);
+    const halfway = placeOnLadder(card, now + DAY_MS);
+    expect(halfway?.y).toBeCloseTo(Math.sqrt(0.8), 2);
+    const late = placeOnLadder(card, now + 3 * DAY_MS);
+    expect(late && late.y).toBeLessThan(0.8);
+    expect(late?.x).toBeCloseTo(2 / 8, 2);
+  });
+
+  it('今天到期和两天后到期会落进不同的格子', () => {
+    const soon = applyRating(emptyCard(), 'good', now);
+    const missed = applyRating(emptyCard(), 'again', now - DAY_MS);
+    expect(dueBuckets([soon, missed, emptyCard()], now, 7)).toEqual([1, 0, 1, 0, 0, 0, 0]);
+    expect(wordRetention(missed, now)).toBeLessThan(0.8);
+  });
+
+  it('旧存档没有复习时间时，按到期日反推', () => {
+    const sample = wordsInBook('n5')[0];
+    const kept = sanitize(
+      {
+        settings: { bookId: 'n5', dailyNew: 10, autoSpeak: true, nickname: '同学' },
+        cards: {
+          [sample.id]: { introduced: true, stage: 2, due: now + 2 * DAY_MS, notebook: false, lapses: 0, reviews: 1, correct: 1, updatedAt: now },
+        },
+        today: { date: '2026-10-21', books: {} },
+        activity: {},
+      },
+      now,
+    );
+    expect(kept.cards[sample.id].reviewedAt).toBe(now);
+    expect(wordRetention(kept.cards[sample.id], now)).toBeCloseTo(1, 2);
   });
 });
 

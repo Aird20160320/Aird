@@ -328,6 +328,27 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--green); out
   font-weight: 700;
 }
 
+.memory-lead, .memory-block p { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.memory-block { margin-top: 16px; }
+.memory-block h3, .forecast h3 { margin: 0 0 8px; font-size: 14px; }
+.memory-block p { margin: 8px 0 0; }
+.memory-block p b { color: var(--ink); }
+.memory-svg { width: 100%; height: auto; display: block; }
+.memory-svg text { fill: var(--faint); font-size: 11px; font-family: inherit; }
+.memory-guide { stroke: #b7c9be; stroke-width: 1; stroke-dasharray: 4 4; }
+.memory-area { fill: rgba(13, 154, 98, 0.14); }
+.memory-line { fill: none; stroke: var(--green); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.memory-dot { fill: white; stroke: var(--green); stroke-width: 2; }
+.memory-dot.late { stroke: var(--red); }
+.memory-marker { fill: var(--green); stroke: white; stroke-width: 2; }
+.memory-axis, .memory-x { display: flex; justify-content: space-between; margin: 2px 0 0 36px; color: var(--faint); font-size: 10px; }
+.memory-x { margin-left: 36px; }
+.memory-counts { display: flex; gap: 8px; margin-top: 12px; }
+.memory-counts div { flex: 1; background: var(--bg); border-radius: 12px; padding: 8px 4px; text-align: center; }
+.memory-counts b { display: block; font-size: 18px; }
+.memory-counts span { color: var(--muted); font-size: 12px; }
+.forecast { margin-top: 14px; }
+.forecast-bars { height: 84px; }
 .bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 128px; }
 .bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
 .bar-track {

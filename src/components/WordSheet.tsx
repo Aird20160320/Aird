@@ -8,6 +8,7 @@ import { speak } from '../lib/speech';
 import { useStore } from '../store';
 import { useUi } from '../ui';
 import { IconClose, IconVolume } from './Icons';
+import { WordMemory } from './MemoryCurve';
 import { Highlight } from './ui';
 
 export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }) {
@@ -135,6 +136,7 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
               </p>
             ) : null}
             {word.tip ? <p className="tip">{word.tip}</p> : null}
+            <WordMemory card={card} />
             <div className="spell-actions">
               <button
                 className="primary"
