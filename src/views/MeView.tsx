@@ -67,7 +67,7 @@ export function MeView() {
       <section className="panel about">
         <h2>关于</h2>
         <p>
-          扇贝单词是一个在浏览器里运行的单词记忆练习。流程参考了「选词书、定量新学、到期复习、认识 / 模糊 / 不认识」这套方法。词义、例句和助记是原创编写的，进度只保存在这台设备上。
+          扇贝日语沿用扇贝的学法：选词书、定量新学、到期复习，再用认识、模糊、不认识安排下一次见面。词书从 N5 到 N3，另有一本日常会话。读音、释义和例句是为这个练习写的，进度只留在这台设备上。
         </p>
       </section>
 
@@ -110,7 +110,7 @@ export function NotebookView() {
   const q = query.trim().toLowerCase();
   const list = words
     .filter((word) => state.cards[word.id]?.notebook)
-    .filter((word) => !q || word.word.toLowerCase().includes(q) || word.senses.some((sense) => sense.def.toLowerCase().includes(q)))
+    .filter((word) => !q || word.word.includes(q) || word.reading.includes(q) || word.senses.some((sense) => sense.def.toLowerCase().includes(q)))
     .sort((a, b) => (state.cards[b.id]?.updatedAt ?? 0) - (state.cards[a.id]?.updatedAt ?? 0));
 
   return (

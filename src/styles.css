@@ -11,7 +11,7 @@
   --shadow: 0 10px 28px rgba(23, 40, 32, 0.06);
   color: var(--ink);
   background: #e7eee9;
-  font-family: Outfit, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-family: Outfit, "Noto Sans JP", "PingFang SC", "Hiragino Sans", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -51,7 +51,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--green); out
   }
   .desk-copy { display: block; width: 300px; color: #24352c; }
   .desk-copy h2 {
-    font-family: Fraunces, Georgia, serif;
+    font-family: "Noto Serif JP", "Noto Sans SC", serif;
     font-weight: 560;
     font-size: 42px;
     line-height: 1.15;
@@ -347,8 +347,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--green); out
   font-weight: 750;
 }
 .word-title {
-  font-family: Fraunces, "Iowan Old Style", Palatino, Georgia, serif;
-  font-weight: 560;
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-weight: 600;
   font-size: 40px;
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -358,7 +358,17 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--green); out
 @supports (font-size: 1cqi) {
   .word-title { font-size: clamp(32px, 10.5cqi, 52px); }
 }
-.phonetic-line { display: flex; justify-content: center; align-items: center; gap: 4px; color: var(--muted); margin: 10px 0 0; }
+.phonetic-line {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  color: #3d4f46;
+  margin: 10px 0 0;
+  font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+}
 .speak-btn {
   width: 32px;
   height: 32px;

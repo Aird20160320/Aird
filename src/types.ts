@@ -3,13 +3,13 @@ export type Rating = 'again' | 'hard' | 'good' | 'easy';
 export const DAILY_CHOICES = [5, 10, 15, 20, 30] as const;
 
 export type Sense = { pos: string; def: string };
-export type Example = { en: string; zh: string };
+export type Example = { jp: string; zh: string };
 
 export type Word = {
   id: string;
   bookId: string;
   word: string;
-  phonetic: string;
+  reading: string;
   tip: string;
   senses: Sense[];
   examples: Example[];

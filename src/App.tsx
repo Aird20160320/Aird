@@ -92,12 +92,12 @@ export function App() {
         <aside className="desk-copy">
           <div className="brand-row">
             <ShellMark size={26} />
-            <span>扇贝单词</span>
+            <span>扇贝日语</span>
           </div>
-          <h2>每天一小组，记得更牢。</h2>
+          <h2>每天一小组，把日语记住。</h2>
           <ul>
-            <li>选定一本词书</li>
-            <li>先回忆，再看释义</li>
+            <li>从 N5 词书开始</li>
+            <li>先回忆读音和意思</li>
             <li>不认识的词很快再见面</li>
             <li>完成计划就打卡</li>
           </ul>

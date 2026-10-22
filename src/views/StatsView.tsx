@@ -52,7 +52,7 @@ export function StatsView() {
             );
           })}
         </div>
-        <p className="meter-hint">柱子是当天新学加复习的词数。词库一共 {words.length} 个词。</p>
+        <p className="meter-hint">柱子是当天新学加复习的词数。现在一共 {words.length} 个日语词。</p>
       </section>
       <Calendar />
     </div>

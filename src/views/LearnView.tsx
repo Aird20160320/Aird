@@ -33,7 +33,7 @@ export function LearnView({ extra }: { extra: boolean }) {
 
   useEffect(() => {
     if (!current || !state.settings.autoSpeak) return;
-    speak(current.word.word);
+    speak(current.word.reading);
     return () => stopSpeaking();
   }, [current, state.settings.autoSpeak]);
 
@@ -128,14 +128,14 @@ export function LearnView({ extra }: { extra: boolean }) {
         </p>
         <h2 className="word-title">{current.word.word}</h2>
         <p className="phonetic-line">
-          <span>{current.word.phonetic}</span>
+          {revealed && current.word.reading !== current.word.word ? <span>{current.word.reading}</span> : null}
           <button
             className="speak-btn"
             type="button"
             aria-label="朗读"
             onClick={(event) => {
               event.stopPropagation();
-              if (!speak(current.word.word)) ui.toast('这台设备暂时不能朗读');
+              if (!speak(current.word.reading)) ui.toast('这台设备暂时不能朗读');
             }}
           >
             <IconVolume />
@@ -151,16 +151,16 @@ export function LearnView({ extra }: { extra: boolean }) {
               </p>
             ))}
             {current.word.examples.map((example) => (
-              <blockquote className="example" key={example.en}>
+              <blockquote className="example" key={example.jp}>
                 <p>
-                  <Highlight text={example.en} word={current.word.word} />
+                  <Highlight text={example.jp} word={current.word.word} />
                 </p>
                 <p>{example.zh}</p>
               </blockquote>
             ))}
             {current.word.synonyms.length > 0 ? (
               <p className="synonyms">
-                近义
+                相关
                 {current.word.synonyms.map((item) => (
                   <span key={item}>{item}</span>
                 ))}
@@ -177,7 +177,7 @@ export function LearnView({ extra }: { extra: boolean }) {
               setRevealed(true);
             }}
           >
-            先回忆释义，再点开
+            先回忆读音和意思，再点开
           </button>
         )}
       </div>
@@ -222,7 +222,7 @@ function Summary({
   const empty = total === 0;
 
   async function copySummary() {
-    const text = `扇贝单词 ${formatChineseDate()}\n新学 ${home.newCount} · 复习 ${home.reviewCount}\n连续 ${home.streak} 天`;
+    const text = `扇贝日语 ${formatChineseDate()}\n新学 ${home.newCount} · 复习 ${home.reviewCount}\n连续 ${home.streak} 天`;
     try {
       await navigator.clipboard.writeText(text);
       ui.toast('今日小结已复制');

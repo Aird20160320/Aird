@@ -59,6 +59,7 @@ export function WordRow({ word, onClick }: { word: Word; onClick: () => void }) 
       <span>
         <strong>{word.word}</strong>
         <em>
+          {word.reading !== word.word ? `${word.reading} · ` : ''}
           {sense?.pos} {sense?.def}
         </em>
       </span>

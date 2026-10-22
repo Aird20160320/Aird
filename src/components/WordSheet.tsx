@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Word } from '../types';
 import { bookById } from '../data/words';
+import { matchesReading } from '../lib/kana';
 import { formatReviewDay, stageLabel } from '../lib/srs';
 import { speak } from '../lib/speech';
 import { useStore } from '../store';
@@ -32,8 +33,7 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
   }, [onClose]);
 
   function checkSpell() {
-    const ok = guess.trim().toLowerCase() === word.word.toLowerCase();
-    setResult(ok ? 'ok' : 'bad');
+    setResult(matchesReading(guess, word.word, word.reading) ? 'ok' : 'bad');
   }
 
   return (
@@ -56,7 +56,7 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
 
         {spelling ? (
           <div className="spell">
-            <p className="spell-lead">看释义，把单词拼出来</p>
+            <p className="spell-lead">看释义，写出平假名读音</p>
             {word.senses.map((sense) => (
               <p className="sense" key={sense.def}>
                 <span>{sense.pos}</span>
@@ -72,8 +72,9 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
               autoCapitalize="off"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="输入英文单词"
-              aria-label="拼写"
+              lang="ja"
+              placeholder="输入平假名"
+              aria-label="读音"
               onKeyDown={(event) => {
                 if (event.key === 'Enter') checkSpell();
               }}
@@ -95,13 +96,13 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
               {word.word}
             </h2>
             <p className="phonetic-line">
-              <span>{word.phonetic}</span>
+              {word.reading !== word.word ? <span>{word.reading}</span> : null}
               <button
                 className="speak-btn"
                 type="button"
                 aria-label="朗读"
                 onClick={() => {
-                  if (!speak(word.word)) ui.toast('这台设备暂时不能朗读');
+                  if (!speak(word.reading)) ui.toast('这台设备暂时不能朗读');
                 }}
               >
                 <IconVolume />
@@ -115,15 +116,15 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
               </p>
             ))}
             {word.examples.map((example) => (
-              <blockquote className="example" key={example.en}>
+              <blockquote className="example" key={example.jp}>
                 <p>
-                  <Highlight text={example.en} word={word.word} />
+                  <Highlight text={example.jp} word={word.word} />
                 </p>
                 <p>{example.zh}</p>
               </blockquote>
             ))}
             <p className="synonyms">
-              近义
+              相关
               {word.synonyms.map((item) => (
                 <span key={item}>{item}</span>
               ))}
@@ -142,7 +143,7 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
                 {card?.notebook ? '移出生词本' : '加入生词本'}
               </button>
               <button className="text-btn" type="button" onClick={() => setSpelling(true)}>
-                拼写自测
+                读音自测
               </button>
             </div>
           </>

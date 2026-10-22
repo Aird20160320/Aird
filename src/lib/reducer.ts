@@ -1,4 +1,4 @@
-import { wordsInBook, wordById } from '../data/words';
+import { isBookId, wordsInBook, wordById } from '../data/words';
 import { DAILY_CHOICES, type Activity, type BookDay, type Card, type Rating, type State } from '../types';
 import { applyRating, dayKey, emptyCard, isBookGoalMet, isDue } from './srs';
 
@@ -14,7 +14,7 @@ export type Action =
 
 export function freshState(now = Date.now()): State {
   return {
-    settings: { bookId: 'cet4', dailyNew: 10, autoSpeak: true, nickname: '同学' },
+    settings: { bookId: 'n5', dailyNew: 10, autoSpeak: true, nickname: '同学' },
     cards: {},
     today: { date: dayKey(new Date(now)), books: {} },
     activity: {},
@@ -85,7 +85,7 @@ export function reducer(state: State, action: Action): State {
       return next === state ? state : next;
     }
     case 'set-book': {
-      if (!['cet4', 'cet6', 'kaoyan', 'ielts'].includes(action.bookId)) return state;
+      if (!isBookId(action.bookId)) return state;
       if (state.settings.bookId === action.bookId) return state;
       return { ...state, settings: { ...state.settings, bookId: action.bookId } };
     }

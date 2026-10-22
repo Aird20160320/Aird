@@ -19,7 +19,7 @@ function BookList() {
   return (
     <div className="page">
       <TopBar title="词书" />
-      <p className="page-lead">一次主攻一本。今日新学和复习都记在当前词书上。</p>
+      <p className="page-lead">一次主攻一本。想学日语的话，从 N5 开始最稳。</p>
       <div className="book-list">
         {books.map((book) => {
           const progress = bookProgress(state, book.id);
@@ -67,7 +67,7 @@ function BookDetail() {
       if (filter === 'learning' && (!card?.introduced || isMastered(card))) return false;
       if (filter === 'mastered' && !isMastered(card)) return false;
       if (!q) return true;
-      const hay = `${word.word} ${word.senses.map((sense) => sense.def).join(' ')} ${word.examples.map((example) => example.zh).join(' ')}`.toLowerCase();
+      const hay = `${word.word} ${word.reading} ${word.senses.map((sense) => sense.def).join(' ')} ${word.examples.map((example) => example.zh).join(' ')}`.toLowerCase();
       return hay.includes(q);
     });
   }, [book.id, filter, query, state.cards]);
@@ -110,7 +110,7 @@ function BookDetail() {
       </div>
       <label className="search">
         <span className="sr">搜索单词</span>
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜单词或释义" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜日语、读音或中文" />
       </label>
       {list.length === 0 ? <p className="empty">没有符合的词</p> : list.map((word: Word) => <WordRow key={word.id} word={word} onClick={() => ui.openWord(word.id)} />)}
     </div>

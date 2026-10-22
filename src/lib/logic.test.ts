@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { books, words, wordsInBook } from '../data/words';
 import { splitHighlight } from './highlight';
+import { matchesReading } from './kana';
 import { freshState, reducer } from './reducer';
 import { buildSession, nextQueue } from './session';
 import { sanitize } from './storage';
@@ -17,14 +18,21 @@ describe('词库', () => {
     }
   });
 
-  it('例句里能标出单词本身', () => {
+  it('例句里能标出单词本身，读音是假名', () => {
     for (const word of words) {
       expect(word.senses.length).toBeGreaterThan(0);
-      expect(word.phonetic.startsWith('/')).toBe(true);
+      expect(word.reading).toMatch(/^[\u3040-\u309f]+$/);
       for (const example of word.examples) {
-        expect(splitHighlight(example.en, word.word).some((part) => part.hit)).toBe(true);
+        expect(splitHighlight(example.jp, word.word).some((part) => part.hit)).toBe(true);
       }
     }
+  });
+
+  it('读音自测接受平假名和片假名', () => {
+    expect(matchesReading('たべる', '食べる', 'たべる')).toBe(true);
+    expect(matchesReading('タベル', '食べる', 'たべる')).toBe(true);
+    expect(matchesReading('のむ', '食べる', 'たべる')).toBe(false);
+    expect(splitHighlight('朝はパンを食べる。', '食べる').some((part) => part.hit)).toBe(true);
   });
 });
 
@@ -77,7 +85,7 @@ describe('一组学习', () => {
   });
 
   it('不认识的词插回队列，连错两次后先离开', () => {
-    const list = wordsInBook('cet4');
+    const list = wordsInBook('n5');
     const queue = list.slice(0, 4).map((word) => ({ word, kind: 'new' as const, passes: 0 }));
     const again = nextQueue(queue, 'again');
     expect(again.map((item) => item.word.id)).toEqual([list[1].id, list[2].id, list[0].id, list[3].id]);
@@ -90,15 +98,15 @@ describe('一组学习', () => {
 describe('进度', () => {
   it('学满目标后打卡，调高目标会取消当天打卡', () => {
     let state = reducer(freshState(now), { type: 'set-daily', dailyNew: 5, now });
-    const list = wordsInBook('cet4');
+    const list = wordsInBook('n5');
     for (let index = 0; index < 4; index += 1) {
       state = reducer(state, { type: 'rate', wordId: list[index].id, rating: 'good', kind: 'new', firstPass: true, now });
     }
-    expect(state.today.books.cet4.checkedIn).toBe(false);
+    expect(state.today.books.n5.checkedIn).toBe(false);
     const missed = list[4];
     state = reducer(state, { type: 'rate', wordId: missed.id, rating: 'again', kind: 'new', firstPass: true, now });
-    expect(state.today.books.cet4.newCount).toBe(5);
-    expect(state.today.books.cet4.checkedIn).toBe(true);
+    expect(state.today.books.n5.newCount).toBe(5);
+    expect(state.today.books.n5.checkedIn).toBe(true);
     expect(state.cards[missed.id].due).toBe(now);
     expect(state.activity[dayKey(new Date(now))].checkedIn).toBe(true);
 
@@ -107,9 +115,9 @@ describe('进度', () => {
     expect(review.some((item) => item.kind === 'new')).toBe(false);
 
     state = reducer(state, { type: 'set-daily', dailyNew: 10, now });
-    expect(state.today.books.cet4.checkedIn).toBe(false);
+    expect(state.today.books.n5.checkedIn).toBe(false);
     state = reducer(state, { type: 'set-daily', dailyNew: 5, now });
-    expect(state.today.books.cet4.checkedIn).toBe(true);
+    expect(state.today.books.n5.checkedIn).toBe(true);
 
     state = reducer(state, { type: 'toggle-notebook', wordId: list[5].id, now });
     expect(state.cards[list[5].id].notebook).toBe(true);
@@ -121,37 +129,39 @@ describe('进度', () => {
 
   it('跨天后保留昨天的打卡', () => {
     let state = reducer(freshState(now), { type: 'set-daily', dailyNew: 5, now });
-    const list = wordsInBook('cet4');
+    const list = wordsInBook('n5');
     for (const word of list.slice(0, 5)) {
       state = reducer(state, { type: 'rate', wordId: word.id, rating: 'easy', kind: 'new', firstPass: true, now });
     }
     const tomorrow = now + DAY_MS;
     state = reducer(state, { type: 'tick', now: tomorrow });
     expect(state.today.date).toBe(dayKey(new Date(tomorrow)));
-    expect(state.today.books.cet4).toBeUndefined();
+    expect(state.today.books.n5).toBeUndefined();
     expect(state.activity[dayKey(new Date(now))].checkedIn).toBe(true);
     expect(computeStreak(Object.keys(state.activity).filter((day) => state.activity[day].checkedIn), state.today.date)).toBe(1);
   });
 
   it('损坏的存档会回到干净的初始状态', () => {
-    expect(sanitize(null, now).settings.bookId).toBe('cet4');
+    expect(sanitize(null, now).settings.bookId).toBe('n5');
+    const sample = wordsInBook('n5')[0];
     const kept = sanitize(
       {
-        settings: { bookId: 'ielts', dailyNew: 15, autoSpeak: false, nickname: '  埃里克同学超出了 ' },
+        settings: { bookId: 'n3', dailyNew: 15, autoSpeak: false, nickname: '  埃里克同学超出了 ' },
         cards: {
-          'cet4-abandon': { introduced: false, stage: 6, due: 1, notebook: true, lapses: 0, reviews: 0, correct: 0, updatedAt: 1 },
+          [sample.id]: { introduced: false, stage: 6, due: 1, notebook: true, lapses: 0, reviews: 0, correct: 0, updatedAt: 1 },
           missing: { introduced: true },
         },
-        today: { date: '2026-10-21', books: {} },
+        today: { date: '2026-10-21', books: { cet4: { newCount: 1, reviewCount: 0, reviewTarget: 0, checkedIn: true } } },
         activity: {},
       },
       now,
     );
-    expect(kept.settings.bookId).toBe('ielts');
+    expect(kept.settings.bookId).toBe('n3');
     expect(kept.settings.dailyNew).toBe(15);
     expect(kept.settings.nickname).toBe('埃里克同学超出了');
-    expect(kept.cards['cet4-abandon'].stage).toBe(0);
-    expect(kept.cards['cet4-abandon'].notebook).toBe(true);
+    expect(kept.cards[sample.id].stage).toBe(0);
+    expect(kept.cards[sample.id].notebook).toBe(true);
     expect(kept.cards.missing).toBeUndefined();
+    expect(kept.today.books.cet4).toBeUndefined();
   });
 });

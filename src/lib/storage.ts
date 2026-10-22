@@ -1,9 +1,9 @@
-import { wordById } from '../data/words';
+import { isBookId, wordById } from '../data/words';
 import { DAILY_CHOICES, type Activity, type BookDay, type Card, type State } from '../types';
 import { freshState } from './reducer';
 import { clampStage, dayKey } from './srs';
 
-const KEY = 'shanbei-words-v1';
+const KEY = 'shanbei-jp-v1';
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function num(value: unknown): number {
@@ -15,7 +15,7 @@ export function sanitize(input: unknown, now = Date.now()): State {
   if (!input || typeof input !== 'object') return base;
   const raw = input as Partial<State>;
   const settings = raw.settings;
-  const bookId = settings && ['cet4', 'cet6', 'kaoyan', 'ielts'].includes(settings.bookId) ? settings.bookId : base.settings.bookId;
+  const bookId = settings && isBookId(settings.bookId) ? settings.bookId : base.settings.bookId;
   const dailyNew = settings && DAILY_CHOICES.includes(settings.dailyNew as (typeof DAILY_CHOICES)[number]) ? settings.dailyNew : 10;
   const nickname = settings && typeof settings.nickname === 'string' && settings.nickname.trim() ? settings.nickname.trim().slice(0, 12) : '同学';
   const autoSpeak = settings?.autoSpeak !== false;
@@ -43,7 +43,7 @@ export function sanitize(input: unknown, now = Date.now()): State {
   const books: Record<string, BookDay> = {};
   if (today.books && typeof today.books === 'object') {
     for (const [id, log] of Object.entries(today.books)) {
-      if (!['cet4', 'cet6', 'kaoyan', 'ielts'].includes(id) || !log || typeof log !== 'object') continue;
+      if (!isBookId(id) || !log || typeof log !== 'object') continue;
       const current = log as Partial<BookDay>;
       books[id] = {
         newCount: num(current.newCount),
