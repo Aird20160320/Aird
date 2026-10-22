@@ -236,6 +236,32 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--green); out
 .bookmark.on { color: var(--green); }
 .page { padding-bottom: 28px; }
 .page-lead { margin: 0 16px 14px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.create-book { display: block; margin: 0 16px 14px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hero-actions .text-btn { width: auto; margin: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+.field input, .field select, .field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 14px;
+  color: var(--ink);
+  font: inherit;
+}
+.field textarea { height: 72px; padding: 10px 14px; resize: vertical; }
+.form-error { margin: 10px 0 0; color: var(--red); font-size: 13px; }
+.delete-confirm { margin-top: 14px; }
+.delete-confirm p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.quiet-danger {
+  display: block;
+  margin: 16px auto 0;
+  border: 0;
+  background: transparent;
+  color: var(--red);
+  font-weight: 700;
+}
 
 .book-hero { display: flex; gap: 14px; padding: 4px 16px 16px; }
 .book-hero p { margin: 0 0 8px; color: var(--muted); font-size: 13px; line-height: 1.6; }

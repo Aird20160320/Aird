@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { words } from '../data/words';
+import { allWords } from '../lib/catalog';
 import { DAILY_CHOICES } from '../types';
 import { useStore } from '../store';
 import { useUi } from '../ui';
@@ -67,7 +67,7 @@ export function MeView() {
       <section className="panel about">
         <h2>关于</h2>
         <p>
-          扇贝日语沿用扇贝的学法：选词书、定量新学、到期复习，再用认识、模糊、不认识安排下一次见面。词书从 N5 到 N3，另有一本日常会话。读音、释义和例句是为这个练习写的，进度只留在这台设备上。
+          扇贝日语沿用扇贝的学法：选词书、定量新学、到期复习，再用认识、模糊、不认识安排下一次见面。可以自己建词书，写上日语、读音和中文。内置词从 N5 到 N3，另有一本日常会话。进度和自建的词都只留在这台设备上。
         </p>
       </section>
 
@@ -108,7 +108,7 @@ export function NotebookView() {
   const ui = useUi();
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
-  const list = words
+  const list = allWords(state)
     .filter((word) => state.cards[word.id]?.notebook)
     .filter((word) => !q || word.word.includes(q) || word.reading.includes(q) || word.senses.some((sense) => sense.def.toLowerCase().includes(q)))
     .sort((a, b) => (state.cards[b.id]?.updatedAt ?? 0) - (state.cards[a.id]?.updatedAt ?? 0));

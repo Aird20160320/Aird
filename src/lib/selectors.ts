@@ -1,12 +1,13 @@
-import { bookById, wordsInBook } from '../data/words';
+import { books } from '../data/words';
 import type { State } from '../types';
+import { findBook, wordsForBook } from './catalog';
 import { computeStreak, dayKey, isDue, isMastered } from './srs';
 
 export function dashboard(state: State, now = Date.now()) {
   const date = dayKey(new Date(now));
   const current = state.today.date === date ? state : { ...state, today: { date, books: {} } };
-  const book = bookById(current.settings.bookId);
-  const list = wordsInBook(book.id);
+  const book = findBook(current, current.settings.bookId) ?? books[0];
+  const list = wordsForBook(current, book.id);
   const log = current.today.books[book.id];
   const due = list.filter((word) => isDue(current.cards[word.id], now)).length;
   const remainingNew = list.filter((word) => !current.cards[word.id]?.introduced).length;
@@ -35,7 +36,7 @@ export function dashboard(state: State, now = Date.now()) {
 }
 
 export function bookProgress(state: State, bookId: string) {
-  const list = wordsInBook(bookId);
+  const list = wordsForBook(state, bookId);
   const introduced = list.filter((word) => state.cards[word.id]?.introduced).length;
   const mastered = list.filter((word) => isMastered(state.cards[word.id])).length;
   return { total: list.length, introduced, mastered };

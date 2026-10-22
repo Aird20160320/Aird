@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { wordById } from './data/words';
+import { findWord } from './lib/catalog';
 import { WordSheet } from './components/WordSheet';
 import { IconBook, IconChart, IconHome, IconUser, ShellMark } from './components/Icons';
 import { BooksView } from './views/BooksView';
@@ -63,7 +63,7 @@ export function App() {
   }, []);
 
   const tab = tabOf(view);
-  const sheetWord = sheetId ? wordById[sheetId] : undefined;
+  const sheetWord = sheetId ? findWord(state, sheetId) : undefined;
 
   return (
     <UiProvider
@@ -96,7 +96,7 @@ export function App() {
           </div>
           <h2>每天一小组，把日语记住。</h2>
           <ul>
-            <li>从 N5 词书开始</li>
+            <li>从 N5 开始，也可以自己建词书</li>
             <li>先回忆读音和意思</li>
             <li>不认识的词很快再见面</li>
             <li>完成计划就打卡</li>

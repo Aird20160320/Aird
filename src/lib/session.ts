@@ -1,6 +1,5 @@
-import { wordsInBook } from '../data/words';
-import type { State } from '../types';
-import type { Word } from '../types';
+import type { State, Word } from '../types';
+import { wordsForBook } from './catalog';
 import { dayKey, isDue } from './srs';
 
 export type SessionItem = {
@@ -13,7 +12,7 @@ const REVIEW_CAP = 30;
 
 export function buildSession(state: State, now: number, extra: boolean): SessionItem[] {
   const bookId = state.settings.bookId;
-  const list = wordsInBook(bookId);
+  const list = wordsForBook(state, bookId);
   const freshToday = state.today.date === dayKey(new Date(now));
   const log = freshToday ? state.today.books[bookId] : undefined;
 

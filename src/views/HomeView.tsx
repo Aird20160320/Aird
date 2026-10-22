@@ -53,6 +53,13 @@ export function HomeView() {
               再学 5 个
             </button>
           </>
+        ) : home.total === 0 ? (
+          <>
+            <p className="done-note">这本词书还没有单词</p>
+            <button className="primary xl" type="button" onClick={() => ui.openBook(home.book.id)}>
+              去添加单词
+            </button>
+          </>
         ) : (
           <>
             <p className="done-note">这本词书暂时没有待学的词</p>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Word } from '../types';
-import { bookById } from '../data/words';
+import { books } from '../data/words';
+import { findBook } from '../lib/catalog';
 import { matchesReading } from '../lib/kana';
 import { formatReviewDay, stageLabel } from '../lib/srs';
 import { speak } from '../lib/speech';
@@ -13,15 +14,17 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
   const { state, dispatch } = useStore();
   const ui = useUi();
   const card = state.cards[word.id];
-  const book = bookById(word.bookId);
+  const book = findBook(state, word.bookId) ?? books[0];
   const [spelling, setSpelling] = useState(false);
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState<'ok' | 'bad' | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     setSpelling(false);
     setGuess('');
     setResult(null);
+    setConfirming(false);
   }, [word.id]);
 
   useEffect(() => {
@@ -123,13 +126,15 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
                 <p>{example.zh}</p>
               </blockquote>
             ))}
-            <p className="synonyms">
-              相关
-              {word.synonyms.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </p>
-            <p className="tip">{word.tip}</p>
+            {word.synonyms.length > 0 ? (
+              <p className="synonyms">
+                相关
+                {word.synonyms.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </p>
+            ) : null}
+            {word.tip ? <p className="tip">{word.tip}</p> : null}
             <div className="spell-actions">
               <button
                 className="primary"
@@ -146,6 +151,33 @@ export function WordSheet({ word, onClose }: { word: Word; onClose: () => void }
                 读音自测
               </button>
             </div>
+            {book.custom ? (
+              confirming ? (
+                <div className="delete-confirm">
+                  <p>这个词和它的学习记录会从词书里消失。</p>
+                  <div className="spell-actions">
+                    <button className="text-btn" type="button" onClick={() => setConfirming(false)}>
+                      取消
+                    </button>
+                    <button
+                      className="danger"
+                      type="button"
+                      onClick={() => {
+                        dispatch({ type: 'delete-word', wordId: word.id });
+                        ui.toast('已从词书删除');
+                        onClose();
+                      }}
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button className="quiet-danger" type="button" onClick={() => setConfirming(true)}>
+                  从这本词书删除
+                </button>
+              )
+            ) : null}
           </>
         )}
       </section>

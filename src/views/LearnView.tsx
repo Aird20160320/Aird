@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { IconBookmark, IconClose, IconVolume } from '../components/Icons';
 import { Highlight } from '../components/ui';
-import { wordsInBook } from '../data/words';
+import { wordsForBook } from '../lib/catalog';
 import { buildSession, nextQueue, type SessionItem } from '../lib/session';
 import { speak, stopSpeaking } from '../lib/speech';
 import { formatChineseDate, previewDelay } from '../lib/srs';
@@ -166,7 +166,7 @@ export function LearnView({ extra }: { extra: boolean }) {
                 ))}
               </p>
             ) : null}
-            <p className="tip">{current.word.tip}</p>
+            {current.word.tip ? <p className="tip">{current.word.tip}</p> : null}
           </div>
         ) : (
           <button
@@ -218,7 +218,7 @@ function Summary({
   const { state } = useStore();
   const ui = useUi();
   const home = dashboard(state);
-  const remaining = wordsInBook(state.settings.bookId).filter((word) => !state.cards[word.id]?.introduced).length;
+  const remaining = wordsForBook(state, state.settings.bookId).filter((word) => !state.cards[word.id]?.introduced).length;
   const empty = total === 0;
 
   async function copySummary() {

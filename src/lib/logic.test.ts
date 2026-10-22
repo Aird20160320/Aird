@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { books, words, wordsInBook } from '../data/words';
+import { wordsForBook } from './catalog';
 import { splitHighlight } from './highlight';
 import { matchesReading } from './kana';
 import { freshState, reducer } from './reducer';
@@ -163,5 +164,104 @@ describe('进度', () => {
     expect(kept.cards[sample.id].notebook).toBe(true);
     expect(kept.cards.missing).toBeUndefined();
     expect(kept.today.books.cet4).toBeUndefined();
+    expect(kept.customBooks).toEqual([]);
+    expect(kept.customWords).toEqual([]);
+  });
+});
+
+describe('自建词书', () => {
+  function withBook(name = '机场日语') {
+    return reducer(freshState(now), { type: 'create-book', name, blurb: '  出发前要会的词  ', now });
+  }
+
+  it('可以建词书并加入单词，片假名会收成平假名', () => {
+    let state = withBook('  机场日语  ');
+    expect(state.customBooks).toHaveLength(1);
+    expect(state.customBooks[0].name).toBe('机场日语');
+    expect(state.customBooks[0].level).toBe('自建');
+    expect(state.customBooks[0].blurb).toBe('出发前要会的词');
+    const bookId = state.customBooks[0].id;
+
+    state = reducer(state, {
+      type: 'add-word',
+      bookId,
+      word: ' 切符 ',
+      reading: 'キップ',
+      pos: '名',
+      def: '车票',
+      exampleJp: '切符を買います。',
+      exampleZh: '买车票。',
+      tip: '',
+      now,
+    });
+    state = reducer(state, {
+      type: 'add-word',
+      bookId,
+      word: '出口',
+      reading: 'でぐち',
+      pos: '名',
+      def: '出口',
+      now: now + 1,
+    });
+    expect(state.customWords[0].reading).toBe('きっぷ');
+    expect(wordsForBook(state, bookId)).toHaveLength(2);
+    expect(reducer(freshState(now), { type: 'create-book', name: '   ', now }).customBooks).toHaveLength(0);
+    expect(reducer(state, { type: 'add-word', bookId: 'n5', word: '猫', reading: 'ねこ', pos: '名', def: '猫', now }).customWords).toHaveLength(2);
+    expect(reducer(state, { type: 'add-word', bookId, word: '猫', reading: 'neko', pos: '名', def: '猫', now }).customWords).toHaveLength(2);
+  });
+
+  it('自建的词能进入学习，清空进度后词书还在', () => {
+    let state = withBook();
+    const bookId = state.customBooks[0].id;
+    state = reducer(state, { type: 'add-word', bookId, word: '切符', reading: 'きっぷ', pos: '名', def: '车票', now });
+    const wordId = state.customWords[0].id;
+    state = reducer(state, { type: 'set-book', bookId });
+    const session = buildSession(state, now, false);
+    expect(session.map((item) => item.word.id)).toEqual([wordId]);
+    state = reducer(state, { type: 'rate', wordId, rating: 'good', kind: 'new', firstPass: true, now });
+    expect(state.cards[wordId].introduced).toBe(true);
+    expect(state.today.books[bookId].newCount).toBe(1);
+
+    const wiped = reducer(state, { type: 'reset', now: now + 5 });
+    expect(wiped.customWords.map((word) => word.id)).toEqual([wordId]);
+    expect(wiped.cards[wordId]).toBeUndefined();
+    expect(wiped.settings.bookId).toBe('n5');
+
+    const round = sanitize(state, now);
+    expect(round.settings.bookId).toBe(bookId);
+    expect(round.customWords[0].reading).toBe('きっぷ');
+    expect(round.cards[wordId].introduced).toBe(true);
+
+    state = reducer(state, { type: 'delete-word', wordId });
+    expect(state.customWords).toHaveLength(0);
+    expect(state.cards[wordId]).toBeUndefined();
+    state = reducer(round, { type: 'delete-book', bookId });
+    expect(state.customBooks).toHaveLength(0);
+    expect(state.customWords).toHaveLength(0);
+    expect(state.settings.bookId).toBe('n5');
+    expect(state.today.books[bookId]).toBeUndefined();
+    expect(reducer(freshState(now), { type: 'delete-book', bookId: 'n5' }).settings.bookId).toBe('n5');
+  });
+
+  it('坏掉的自建单词不会进存档', () => {
+    const kept = sanitize(
+      {
+        settings: { bookId: 'cb-abc-0', dailyNew: 10, autoSpeak: true, nickname: '同学' },
+        cards: { 'cw-abc-0': { introduced: true, stage: 2, due: 1, notebook: false, lapses: 0, reviews: 1, correct: 1, updatedAt: 1 } },
+        today: { date: '2026-10-21', books: { 'cb-abc-0': { newCount: 1, reviewCount: 0, reviewTarget: 0, checkedIn: false } } },
+        activity: {},
+        customBooks: [{ id: 'cb-abc-0', name: '旅行', blurb: '', tint: '#7a4e9a', ink: '#f7eefe' }],
+        customWords: [
+          { id: 'cw-abc-0', bookId: 'cb-abc-0', word: '切符', reading: 'きっぷ', senses: [{ pos: '名', def: '车票' }], examples: [], tip: '', synonyms: [] },
+          { id: 'cw-bad', bookId: 'cb-abc-0', word: '猫', reading: 'neko', senses: [{ pos: '名', def: '猫' }], examples: [], tip: '', synonyms: [] },
+          { id: 'cw-gone', bookId: 'cb-missing', word: '水', reading: 'みず', senses: [{ pos: '名', def: '水' }], examples: [], tip: '', synonyms: [] },
+        ],
+      },
+      now,
+    );
+    expect(kept.settings.bookId).toBe('cb-abc-0');
+    expect(kept.customWords.map((word) => word.word)).toEqual(['切符']);
+    expect(kept.cards['cw-abc-0'].introduced).toBe(true);
+    expect(kept.today.books['cb-abc-0'].newCount).toBe(1);
   });
 });

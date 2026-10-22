@@ -23,6 +23,7 @@ export type Book = {
   blurb: string;
   tint: string;
   ink: string;
+  custom?: boolean;
 };
 
 export type Card = {
@@ -70,4 +71,6 @@ export type State = {
   cards: Record<string, Card>;
   today: DayRecord;
   activity: Record<string, Activity>;
+  customBooks: Book[];
+  customWords: Word[];
 };

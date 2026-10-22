@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { words } from '../data/words';
+import { allWords } from '../lib/catalog';
 import { dayKey, isMastered, prevDay } from '../lib/srs';
 import { dashboard } from '../lib/selectors';
 import { useStore } from '../store';
@@ -52,7 +52,7 @@ export function StatsView() {
             );
           })}
         </div>
-        <p className="meter-hint">柱子是当天新学加复习的词数。现在一共 {words.length} 个日语词。</p>
+        <p className="meter-hint">柱子是当天新学加复习的词数。现在一共 {allWords(state).length} 个日语词。</p>
       </section>
       <Calendar />
     </div>

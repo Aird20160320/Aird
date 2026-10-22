@@ -1,5 +1,7 @@
-import { isBookId, wordsInBook, wordById } from '../data/words';
-import { DAILY_CHOICES, type Activity, type BookDay, type Card, type Rating, type State } from '../types';
+import { wordById } from '../data/words';
+import { DAILY_CHOICES, type Activity, type Book, type BookDay, type Card, type Rating, type State, type Word } from '../types';
+import { findWord, isCustomBook, isKnownBook, wordsForBook } from './catalog';
+import { COVER_PALETTE, buildCustomWord, cleanBlurb, cleanBookName, customBookId, customWordId } from './draft';
 import { applyRating, dayKey, emptyCard, isBookGoalMet, isDue } from './srs';
 
 export type Action =
@@ -10,6 +12,21 @@ export type Action =
   | { type: 'set-nickname'; nickname: string }
   | { type: 'toggle-speak' }
   | { type: 'toggle-notebook'; wordId: string; now: number }
+  | { type: 'create-book'; name: string; blurb?: string; now: number }
+  | { type: 'delete-book'; bookId: string }
+  | {
+      type: 'add-word';
+      bookId: string;
+      word: string;
+      reading: string;
+      pos: string;
+      def: string;
+      exampleJp?: string;
+      exampleZh?: string;
+      tip?: string;
+      now: number;
+    }
+  | { type: 'delete-word'; wordId: string }
   | { type: 'reset'; now: number };
 
 export function freshState(now = Date.now()): State {
@@ -18,15 +35,17 @@ export function freshState(now = Date.now()): State {
     cards: {},
     today: { date: dayKey(new Date(now)), books: {} },
     activity: {},
+    customBooks: [],
+    customWords: [],
   };
 }
 
-function dueCount(cards: State['cards'], bookId: string, now: number): number {
-  return wordsInBook(bookId).filter((word) => isDue(cards[word.id], now)).length;
+function dueCount(state: State, bookId: string, now: number): number {
+  return wordsForBook(state, bookId).filter((word) => isDue(state.cards[word.id], now)).length;
 }
 
-function remainingNew(cards: State['cards'], bookId: string): number {
-  return wordsInBook(bookId).filter((word) => !cards[word.id]?.introduced).length;
+function remainingNew(state: State, bookId: string): number {
+  return wordsForBook(state, bookId).filter((word) => !state.cards[word.id]?.introduced).length;
 }
 
 export function ensureToday(state: State, now: number): State {
@@ -56,7 +75,7 @@ function recomputeGoals(state: State): State {
   let changed = false;
   const books = { ...state.today.books };
   for (const [bookId, log] of Object.entries(books)) {
-    const met = isBookGoalMet(log, state.settings.dailyNew, remainingNew(state.cards, bookId));
+    const met = isBookGoalMet(log, state.settings.dailyNew, remainingNew(state, bookId));
     if (met !== log.checkedIn) {
       books[bookId] = { ...log, checkedIn: met };
       changed = true;
@@ -72,10 +91,23 @@ function ensureBook(state: State, bookId: string, now: number): State {
   const log: BookDay = {
     newCount: 0,
     reviewCount: 0,
-    reviewTarget: dueCount(base.cards, bookId, now),
+    reviewTarget: dueCount(base, bookId, now),
     checkedIn: false,
   };
   return { ...base, today: { ...base.today, books: { ...base.today.books, [bookId]: log } } };
+}
+
+function toStoredWord(bookId: string, id: string, built: NonNullable<ReturnType<typeof buildCustomWord>>): Word {
+  return {
+    id,
+    bookId,
+    word: built.word,
+    reading: built.reading,
+    tip: built.tip,
+    senses: [{ pos: built.pos, def: built.def }],
+    examples: built.exampleJp || built.exampleZh ? [{ jp: built.exampleJp, zh: built.exampleZh }] : [],
+    synonyms: [],
+  };
 }
 
 export function reducer(state: State, action: Action): State {
@@ -85,7 +117,7 @@ export function reducer(state: State, action: Action): State {
       return next === state ? state : next;
     }
     case 'set-book': {
-      if (!isBookId(action.bookId)) return state;
+      if (!isKnownBook(state, action.bookId)) return state;
       if (state.settings.bookId === action.bookId) return state;
       return { ...state, settings: { ...state.settings, bookId: action.bookId } };
     }
@@ -105,16 +137,63 @@ export function reducer(state: State, action: Action): State {
     case 'toggle-speak':
       return { ...state, settings: { ...state.settings, autoSpeak: !state.settings.autoSpeak } };
     case 'toggle-notebook': {
-      if (!wordById[action.wordId]) return state;
+      if (!findWord(state, action.wordId)) return state;
       const prev = state.cards[action.wordId] ?? emptyCard();
       const card: Card = { ...prev, notebook: !prev.notebook, updatedAt: action.now };
       return { ...state, cards: { ...state.cards, [action.wordId]: card } };
     }
+    case 'create-book': {
+      const name = cleanBookName(action.name);
+      if (!name) return state;
+      const index = state.customBooks.length;
+      const book: Book = {
+        id: customBookId(action.now, index),
+        name,
+        level: '自建',
+        blurb: cleanBlurb(action.blurb ?? ''),
+        tint: COVER_PALETTE[index % COVER_PALETTE.length].tint,
+        ink: COVER_PALETTE[index % COVER_PALETTE.length].ink,
+        custom: true,
+      };
+      if (state.customBooks.some((item) => item.id === book.id)) return state;
+      return { ...state, customBooks: [...state.customBooks, book] };
+    }
+    case 'delete-book': {
+      if (!isCustomBook(state, action.bookId)) return state;
+      const removed = new Set(state.customWords.filter((word) => word.bookId === action.bookId).map((word) => word.id));
+      const cards = { ...state.cards };
+      for (const id of removed) delete cards[id];
+      const books = { ...state.today.books };
+      delete books[action.bookId];
+      return {
+        ...state,
+        settings: state.settings.bookId === action.bookId ? { ...state.settings, bookId: 'n5' } : state.settings,
+        cards,
+        today: { ...state.today, books },
+        customBooks: state.customBooks.filter((book) => book.id !== action.bookId),
+        customWords: state.customWords.filter((word) => word.bookId !== action.bookId),
+      };
+    }
+    case 'add-word': {
+      if (!isCustomBook(state, action.bookId)) return state;
+      const built = buildCustomWord(action);
+      if (!built) return state;
+      const id = customWordId(action.now, state.customWords.length);
+      if (wordById[id] || state.customWords.some((word) => word.id === id)) return state;
+      return { ...state, customWords: [...state.customWords, toStoredWord(action.bookId, id, built)] };
+    }
+    case 'delete-word': {
+      const word = state.customWords.find((item) => item.id === action.wordId);
+      if (!word) return state;
+      const cards = { ...state.cards };
+      delete cards[word.id];
+      return { ...state, cards, customWords: state.customWords.filter((item) => item.id !== word.id) };
+    }
     case 'reset':
-      return freshState(action.now);
+      return { ...freshState(action.now), customBooks: state.customBooks, customWords: state.customWords };
     case 'rate': {
-      if (!wordById[action.wordId]) return state;
-      const word = wordById[action.wordId];
+      const word = findWord(state, action.wordId);
+      if (!word) return state;
       let next = ensureBook(state, word.bookId, action.now);
       const prev = next.cards[word.id] ?? emptyCard();
       const card = applyRating(prev, action.rating, action.now);
@@ -125,10 +204,11 @@ export function reducer(state: State, action: Action): State {
         reviewCount: log.reviewCount + (action.firstPass && action.kind === 'review' ? 1 : 0),
         checkedIn: false,
       };
-      updated.checkedIn = isBookGoalMet(updated, next.settings.dailyNew, remainingNew({ ...next.cards, [word.id]: card }, word.bookId));
+      const cards = { ...next.cards, [word.id]: card };
+      updated.checkedIn = isBookGoalMet(updated, next.settings.dailyNew, remainingNew({ ...next, cards }, word.bookId));
       next = {
         ...next,
-        cards: { ...next.cards, [word.id]: card },
+        cards,
         today: { ...next.today, books: { ...next.today.books, [word.bookId]: updated } },
       };
       return withActivity(next, action.rating);
