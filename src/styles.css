@@ -265,7 +265,19 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--green); out
 
 .book-hero { display: flex; gap: 14px; padding: 4px 16px 16px; }
 .book-hero p { margin: 0 0 8px; color: var(--muted); font-size: 13px; line-height: 1.6; }
-.filters, .choices { display: flex; gap: 8px; flex-wrap: wrap; }
+.filters, .choices { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.daily-goal { margin-top: 12px; }
+.panel .daily-goal { margin-top: 4px; }
+.daily-goal .meter-top strong { font-size: 13px; font-weight: 650; }
+.daily-custom input {
+  width: 52px;
+  height: 32px;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 999px;
+  text-align: center;
+  padding: 0 8px;
+}
 .filters { padding: 0 16px 12px; }
 .chip {
   border: 0;

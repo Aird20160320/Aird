@@ -1,6 +1,12 @@
 export type Rating = 'again' | 'hard' | 'good' | 'easy';
 
 export const DAILY_CHOICES = [5, 10, 15, 20, 30] as const;
+export const DAILY_MIN = 1;
+export const DAILY_MAX = 50;
+
+export function isDailyNew(value: number): boolean {
+  return Number.isInteger(value) && value >= DAILY_MIN && value <= DAILY_MAX;
+}
 
 export type Sense = { pos: string; def: string };
 export type Example = { jp: string; zh: string };

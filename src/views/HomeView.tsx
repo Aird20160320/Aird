@@ -3,6 +3,7 @@ import { formatChineseDate, greeting, reviewMeter } from '../lib/srs';
 import { dashboard } from '../lib/selectors';
 import { useStore } from '../store';
 import { ShellMark } from '../components/Icons';
+import { DailyGoal } from '../components/DailyGoal';
 import { Cover, Meter } from '../components/ui';
 import { useUi } from '../ui';
 
@@ -41,6 +42,7 @@ export function HomeView() {
           <span className={home.checkedIn ? 'pill ok' : 'pill'}>{home.checkedIn ? '已打卡' : '未打卡'}</span>
         </div>
         <Meter label="新学" value={home.newCount} total={state.settings.dailyNew} />
+        <DailyGoal />
         <Meter label="复习" value={review.value} total={review.total} hint={review.total === 0 ? '今天没有到期的词' : undefined} />
         {queue.length > 0 ? (
           <button className="primary xl" type="button" onClick={() => ui.startLearn(false)}>

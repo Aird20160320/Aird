@@ -79,6 +79,18 @@ describe('间隔', () => {
 });
 
 describe('一组学习', () => {
+  it('每天新词可以改成 1 到 50 之间的数量', () => {
+    let state = reducer(freshState(now), { type: 'set-daily', dailyNew: 8, now });
+    expect(state.settings.dailyNew).toBe(8);
+    expect(buildSession(state, now, false)).toHaveLength(8);
+    expect(reducer(state, { type: 'set-daily', dailyNew: 0, now }).settings.dailyNew).toBe(8);
+    expect(reducer(state, { type: 'set-daily', dailyNew: 51, now }).settings.dailyNew).toBe(8);
+    const kept = sanitize({ settings: { bookId: 'n5', dailyNew: 8, autoSpeak: true, nickname: '同学' }, cards: {}, today: { date: '2026-10-21', books: {} }, activity: {} }, now);
+    expect(kept.settings.dailyNew).toBe(8);
+    const dropped = sanitize({ settings: { bookId: 'n5', dailyNew: 80, autoSpeak: true, nickname: '同学' }, cards: {}, today: { date: '2026-10-21', books: {} }, activity: {} }, now);
+    expect(dropped.settings.dailyNew).toBe(10);
+  });
+
   it('按每日新词数量组队列，加量最多五个', () => {
     const state = freshState(now);
     expect(buildSession(state, now, false)).toHaveLength(10);

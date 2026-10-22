@@ -1,5 +1,5 @@
 import { wordById } from '../data/words';
-import { DAILY_CHOICES, type Activity, type Book, type BookDay, type Card, type Rating, type State, type Word } from '../types';
+import { isDailyNew, type Activity, type Book, type BookDay, type Card, type Rating, type State, type Word } from '../types';
 import { findWord, isCustomBook, isKnownBook, wordsForBook } from './catalog';
 import { COVER_PALETTE, buildCustomWord, cleanBlurb, cleanBookName, customBookId, customWordId } from './draft';
 import { applyRating, dayKey, emptyCard, isBookGoalMet, isDue } from './srs';
@@ -122,7 +122,7 @@ export function reducer(state: State, action: Action): State {
       return { ...state, settings: { ...state.settings, bookId: action.bookId } };
     }
     case 'set-daily': {
-      if (!DAILY_CHOICES.includes(action.dailyNew as (typeof DAILY_CHOICES)[number])) return state;
+      if (!isDailyNew(action.dailyNew)) return state;
       const next = ensureToday(
         { ...state, settings: { ...state.settings, dailyNew: action.dailyNew } },
         action.now,

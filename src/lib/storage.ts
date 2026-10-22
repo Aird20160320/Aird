@@ -1,5 +1,5 @@
 import { isBookId, wordById } from '../data/words';
-import { DAILY_CHOICES, type Activity, type Book, type BookDay, type Card, type State, type Word } from '../types';
+import { isDailyNew, type Activity, type Book, type BookDay, type Card, type State, type Word } from '../types';
 import { COVER_PALETTE, buildCustomWord } from './draft';
 import { reviewedAtOf } from './memory';
 import { freshState } from './reducer';
@@ -87,7 +87,7 @@ export function sanitize(input: unknown, now = Date.now()): State {
   const settings = raw.settings;
   const requestedBook = settings && typeof settings.bookId === 'string' ? settings.bookId : '';
   const bookId = isBookId(requestedBook) || customBookIds.has(requestedBook) ? requestedBook : base.settings.bookId;
-  const dailyNew = settings && DAILY_CHOICES.includes(settings.dailyNew as (typeof DAILY_CHOICES)[number]) ? settings.dailyNew : 10;
+  const dailyNew = settings && isDailyNew(settings.dailyNew) ? settings.dailyNew : 10;
   const nickname = settings && typeof settings.nickname === 'string' && settings.nickname.trim() ? settings.nickname.trim().slice(0, 12) : '同学';
   const autoSpeak = settings?.autoSpeak !== false;
 

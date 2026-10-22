@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { allWords } from '../lib/catalog';
-import { DAILY_CHOICES } from '../types';
 import { useStore } from '../store';
 import { useUi } from '../ui';
 import { ShellMark } from '../components/Icons';
+import { DailyGoal } from '../components/DailyGoal';
 import { TopBar, WordRow } from '../components/ui';
 
 export function MeView() {
@@ -36,21 +36,8 @@ export function MeView() {
       </section>
 
       <section className="panel">
-        <h2>每日新词</h2>
-        <div className="choices">
-          {DAILY_CHOICES.map((count) => (
-            <button
-              key={count}
-              type="button"
-              className={state.settings.dailyNew === count ? 'chip on' : 'chip'}
-              aria-pressed={state.settings.dailyNew === count}
-              onClick={() => dispatch({ type: 'set-daily', dailyNew: count, now: Date.now() })}
-            >
-              {count}
-            </button>
-          ))}
-        </div>
-        <p className="meter-hint">改小目标后，如果今天已经学够，会立刻算作打卡。</p>
+        <h2>每天学几个新词</h2>
+        <DailyGoal hint="改小之后，今天如果已经学够，会马上算打卡。到期的词仍会排进复习。" />
       </section>
 
       <section className="panel list-panel">
